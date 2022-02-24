@@ -1,0 +1,1 @@
+DAG_FAILURE_EMAIL_LIST = ['m.uzair.amer@gmail.com']

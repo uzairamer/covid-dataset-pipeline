@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres:14.2-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    ports:
+      - 5432:5432
+  pydev:
+    volumes:
+        - ./:/app/
+    build:
+      context: ./
+      dockerfile: Dockerfile
+
+volumes:
+  postgres_data:
