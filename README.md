@@ -25,7 +25,14 @@ Now run the following command to initialize all containers. `--build` flag makes
 docker-compose up --build
 ```
 The airflow UI can be accessed on `http://localhost:8080`
+### Airflow UI
+![](airflowui.png)
+
+### Covid Ingestion DAG
 ![](dag.png)
+
+### Logs
+![](logs.png)
 # Architecture
 ## Tweaks in Airflow config
 By default `AIRFLOW__CORE__LOAD_EXAMPLES` is true, I've set it to false so that we can see only our dags.
@@ -38,17 +45,17 @@ POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 Our own instance of database has been added under the `services` section at the end of `docker-compose.yml` file along with a volume
 ```yaml
 db:
-	image: postgres:14.2-alpine
-	restart: always
-	volumes:
-		- postgres_data:/var/lib/postgresql/data/
-	env_file:
-		- ./.env
-	ports:
-		- 5432:5432
+  image: postgres:14.2-alpine
+  restart: always
+  volumes:
+    - postgres_data:/var/lib/postgresql/data/
+  env_file:
+    - ./.env
+  ports:
+    - 5432:5432
 
 volumes:
-	postgres_data:
+  postgres_data:
 ```
 ## Database Schema
 We have 3 main tables
@@ -135,7 +142,8 @@ SEEN_KEYS = [
 ]
 ```
 
-## Improvements
+## Further Improvements
 1. We can discard the use of `SEEN_KEYS` by picking up dataset columns based on index. So if a dataset has different number of columns, ideally, the ingestion should fail.
-2. We can use a clever `regular expression` or `string matching algorithm` to normalize columns
+2. We can use a clever `regular expression` or `string matching algorithm` to normalize columns.
 3. DAG tasks can be divided into granular subtasks. E.g. fetching tables foreign key constraint tables.
+4. Aforementioned is a completely custom solution, a framework can solve many of the above features.
