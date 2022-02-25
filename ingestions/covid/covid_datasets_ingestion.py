@@ -6,7 +6,7 @@ import os
 
 import psycopg2
 
-from ingestions.covid.constants import DATASET_URL, FIELD_MAPPING, FIELD_MAPPING2
+from ingestions.covid.constants import DATASET_URL, FIELD_MAPPING, SEEN_KEYS
 from ingestions.covid.database_queries import DatabaseQuery
 
 
@@ -66,9 +66,11 @@ class CovidDatasetsIngestion:
             )
             conn.set_session(autocommit=True)
             cursor = conn.cursor()
-            cursor.execute(DatabaseQuery.drop_covid_records_table())
-            cursor.execute(DatabaseQuery.drop_province_state_table())
-            cursor.execute(DatabaseQuery.drop_country_region_table())
+
+            # DROP tables (for testing purpose)
+            # cursor.execute(DatabaseQuery.drop_covid_records_table())
+            # cursor.execute(DatabaseQuery.drop_province_state_table())
+            # cursor.execute(DatabaseQuery.drop_country_region_table())
 
             cursor.execute(DatabaseQuery.create_country_region_table())
             cursor.execute(DatabaseQuery.create_province_state_table())
@@ -90,12 +92,11 @@ class CovidDatasetsIngestion:
                 reader = DictReader(StringIO(csv_response))
                 if not fieldnames:
                     fieldnames = reader.fieldnames
-                elif not all([True if f in FIELD_MAPPING2.keys() else False for f in reader.fieldnames]):
+                elif not all([True if f in SEEN_KEYS.keys() else False for f in reader.fieldnames]):
                     print('Actual fieldnames ', fieldnames)
                     print('Different fieldnames ', reader.fieldnames)
                     print('Skipping link ', dataset['download_url'])
                     continue
-
 
                 normalized_records = []
                 for index, row in enumerate(reader):
@@ -113,6 +114,10 @@ class CovidDatasetsIngestion:
         except Exception as e:
             print(e)
             raise
+        finally:
+            if conn:
+                conn.close()
+
 
 if __name__ == '__main__':
     CovidDatasetsIngestion().execute()

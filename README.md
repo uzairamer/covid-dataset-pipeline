@@ -1,3 +1,4 @@
+# Running the Covid Dataset Pipeline
 The project has been tested with
  
 ```sh
@@ -24,6 +25,8 @@ Now run the following command to initialize all containers. `--build` flag makes
 docker-compose up --build
 ```
 The airflow UI can be accessed on `http://localhost:8080`
+![](dag.png)
+# Architecture
 ## Tweaks in Airflow config
 By default `AIRFLOW__CORE__LOAD_EXAMPLES` is true, I've set it to false so that we can see only our dags.
 `POSTGRES_USER`, `POSTGRES_PASSWORD` are coming from the `.env`
@@ -47,8 +50,7 @@ db:
 volumes:
 	postgres_data:
 ```
-## Code Explanation
-### Database Schema
+## Database Schema
 We have 3 main tables
 - tbl_covid_records
 	```sql
@@ -88,10 +90,52 @@ We have 3 main tables
 		CONSTRAINT unq_country_region UNIQUE (country_region)
 	);
 	```
-### Upserts for lookup tables
+## Upserts for lookup tables
 For the first run of ingestion, these tables would be entry so for each record there can be duplicates. e.g.
 ```sql
 INSERT INTO lu_province_state (province_state)
 VALUES (%s) ON CONFLICT ON CONSTRAINT unq_province_state
 DO UPDATE SET province_state = EXCLUDED.province_state RETURNING province_state_id;
 ```
+
+## Field mappings
+The keys of the field mapping dictionary corresponds to the `tbl_covid_records` column names. This is useful if we have to perform special operations for relational fields. The `keys` property of an item is used to lookup field in the dataset row. If a key yields a value, rest of the keys will be ignored.
+
+`normalizer` is function that is used to convert the raw value according to the schema.
+```json
+FIELD_MAPPING = {
+    "fips": {'keys': ['FIPS',], 'normalizer': lambda x: int(float(x))},
+    "admin2": {'keys': ['Admin2',], 'normalizer': str},
+    "province_state": {'keys': ['Province_State', 'Province/State',], 'normalizer': str},
+    "country_region": {'keys': ['Country_Region', 'Country/Region',], 'normalizer': str},
+    "last_update": {'keys': ['Last_Update', 'Last Update'], 'normalizer': str}
+	...
+}
+```
+
+Seen keys are used to detect if a different set of columns have been received in the dataset. If a different set appears, that dataset will be ignored and will be logged.
+
+```json
+SEEN_KEYS = [
+    'FIPS',
+    'Admin2',
+
+    'Province_State',
+    'Province/State',
+
+    'Country_Region',
+    'Country/Region',
+
+    'Last_Update',
+    'Last Update',
+
+    'Latitude',
+    'Lat',
+	...
+]
+```
+
+## Improvements
+1. We can discard the use of `SEEN_KEYS` by picking up dataset columns based on index. So if a dataset has different number of columns, ideally, the ingestion should fail.
+2. We can use a clever `regular expression` or `string matching algorithm` to normalize columns
+3. DAG tasks can be divided into granular subtasks. E.g. fetching tables foreign key constraint tables.

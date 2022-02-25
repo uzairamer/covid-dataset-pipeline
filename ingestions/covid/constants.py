@@ -17,31 +17,31 @@ FIELD_MAPPING = {
     "case_fatality_ratio": {'keys': ['Case_Fatality_Ratio', 'Case-Fatality_Ratio'], 'normalizer': float},
 }
 
-FIELD_MAPPING2 = {
-    'FIPS': 'FIPS',
-    'Admin2': 'Admin2',
+SEEN_KEYS = [
+    'FIPS',
+    'Admin2',
 
-    'Province_State': 'Province_State',
-    'Province/State': 'Province_State',
+    'Province_State',
+    'Province/State',
 
-    'Country_Region': 'Country_Region',
-    'Country/Region': 'Country_Region',
+    'Country_Region',
+    'Country/Region',
 
-    'Last_Update': 'Last_Update',
-    'Last Update': 'Last_Update',
+    'Last_Update',
+    'Last Update',
 
-    'Latitude': 'Latitude',
-    'Lat': 'Latitude',
+    'Latitude',
+    'Lat',
 
-    'Longitude': 'Longitude',
-    'Long_': 'Longitude',
+    'Longitude',
+    'Long_',
 
-    'Confirmed': 'Confirmed',
-    'Deaths': 'Deaths',
-    'Recovered': 'Recovered',
-    'Active': 'Active',
-    'Combined_Key': 'Combined_Key',
-    'Incident_Rate': 'Incident_Rate',
-    'Case_Fatality_Ratio': 'Case_Fatality_Ratio',
-    'Case-Fatality_Ratio': 'Case_Fatality_Ratio',
- }
+    'Confirmed',
+    'Deaths',
+    'Recovered',
+    'Active',
+    'Combined_Key',
+    'Incident_Rate',
+    'Case_Fatality_Ratio',
+    'Case-Fatality_Ratio',
+]
