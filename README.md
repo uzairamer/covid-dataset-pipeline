@@ -14,17 +14,17 @@ After cloning the repository, make sure to setup the following environment varia
 + POSTGRES_USER=<your-user>
 + POSTGRES_PASSWORD=<your-password>
 ```
-In the project root run the following command to initialize airflow and create a default user
+In the project root, run the following command to initialize airflow and create the default user
 ```sh
 docker-compose up airflow-init
 ```
 Now, for Airflow UI, username:password will be `airflow:airflow`
 
-Now run the following command to initialize all containers. `--build` flag makes sure the containers are built before launch. This flag is default for the first run. 
+Now run the following command to initialize all containers. `--build` flag makes sure the containers are built before launch. This flag is default for the first build. 
 ```sh
 docker-compose up --build
 ```
-The airflow UI can be accessed on `http://localhost:8080`
+The Airflow UI can be accessed on `http://localhost:8080`
 ### Airflow UI
 ![](airflowui.png)
 
@@ -42,7 +42,7 @@ AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
 POSTGRES_USER: ${POSTGRES_USER}
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
-Our own instance of database has been added under the `services` section at the end of `docker-compose.yml` file along with a volume
+Our own instance of database has been added under the `services` section at the end of `docker-compose.yml` file along with a named volume
 ```yaml
 db:
   image: postgres:14.2-alpine
@@ -61,7 +61,7 @@ volumes:
 We have 3 main tables
 - tbl_covid_records
 	```sql
-		CREATE TABLE IF NOT EXISTS tbl_covid_records (
+	CREATE TABLE IF NOT EXISTS tbl_covid_records (
 		record_id SERIAL PRIMARY KEY,
 		fips INTEGER,
 		admin2 VARCHAR(255),
@@ -109,20 +109,20 @@ DO UPDATE SET province_state = EXCLUDED.province_state RETURNING province_state_
 The keys of the field mapping dictionary corresponds to the `tbl_covid_records` column names. This is useful if we have to perform special operations for relational fields. The `keys` property of an item is used to lookup field in the dataset row. If a key yields a value, rest of the keys will be ignored.
 
 `normalizer` is function that is used to convert the raw value according to the schema.
-```json
+```python
 FIELD_MAPPING = {
-    "fips": {'keys': ['FIPS',], 'normalizer': lambda x: int(float(x))},
-    "admin2": {'keys': ['Admin2',], 'normalizer': str},
-    "province_state": {'keys': ['Province_State', 'Province/State',], 'normalizer': str},
-    "country_region": {'keys': ['Country_Region', 'Country/Region',], 'normalizer': str},
-    "last_update": {'keys': ['Last_Update', 'Last Update'], 'normalizer': str}
+    'fips': {'keys': ['FIPS',], 'normalizer': lambda x: int(float(x))},
+    'admin2': {'keys': ['Admin2',], 'normalizer': str},
+    'province_state': {'keys': ['Province_State', 'Province/State',], 'normalizer': str},
+    'country_region': {'keys': ['Country_Region', 'Country/Region',], 'normalizer': str},
+    'last_update': {'keys': ['Last_Update', 'Last Update'], 'normalizer': str}
 	...
 }
 ```
 
 Seen keys are used to detect if a different set of columns have been received in the dataset. If a different set appears, that dataset will be ignored and will be logged.
 
-```json
+```python
 SEEN_KEYS = [
     'FIPS',
     'Admin2',
@@ -145,5 +145,5 @@ SEEN_KEYS = [
 ## Further Improvements
 1. We can discard the use of `SEEN_KEYS` by picking up dataset columns based on index. So if a dataset has different number of columns, ideally, the ingestion should fail.
 2. We can use a clever `regular expression` or `string matching algorithm` to normalize columns.
-3. DAG tasks can be divided into granular subtasks. E.g. fetching tables foreign key constraint tables.
+3. DAG tasks can be divided into granular subtasks. E.g. fetching tables that tables that have relations.
 4. Aforementioned is a completely custom solution, a framework can solve many of the above features.
